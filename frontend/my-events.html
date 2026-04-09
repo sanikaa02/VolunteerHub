@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VolunteerHub — My Events</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --green:#1a6b3c; --green2:#228b4e; --lime:#4caf72; --white:#f5f9f6; --gray:#7a8a80; --red:#e05252; --bg:#f0f5f1; --dark:#0f2d1c; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); min-height: 100vh; }
+
+    nav { background: var(--dark); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 34px; height: 34px; background: var(--lime); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; color: var(--dark); font-size: 18px; }
+    .logo-text { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--white); }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a { color: var(--gray); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .nav-links a.active, .nav-links a:hover { color: var(--white); }
+    .btn-logout { padding: 8px 16px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: var(--white); background: transparent; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; border-radius: 16px; padding: 32px; width: 360px; text-align: center; }
+    .modal h3 { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--dark); margin-bottom: 10px; }
+    .modal p { color: var(--gray); font-size: 14px; margin-bottom: 24px; }
+    .modal-btns { display: flex; gap: 12px; }
+    .btn-cancel-modal { flex:1; padding:12px; border:1.5px solid #ddd; border-radius:10px; background:white; color:var(--dark); font-size:14px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+    .btn-confirm { flex:1; padding:12px; background:var(--red); border:none; border-radius:10px; color:white; font-size:14px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+    main { padding: 40px; max-width: 1000px; margin: 0 auto; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 30px; color: var(--dark); }
+    .page-header p { color: var(--gray); font-size: 14px; margin-top: 4px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: white; border-radius: 14px; padding: 20px 24px; }
+    .stat-label { font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .stat-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--dark); }
+    .stat-sub { font-size: 12px; color: var(--lime); margin-top: 4px; }
+
+    .tab-row { display: flex; background: white; border-radius: 12px; padding: 4px; margin-bottom: 24px; width: fit-content; }
+    .tab { padding: 8px 20px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--gray); border: none; background: transparent; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+    .tab.active { background: var(--dark); color: white; }
+
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; margin-top: 8px; }
+    .section-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--dark); }
+    .section-count { font-size: 13px; color: var(--gray); background: #f0f5f1; padding: 4px 12px; border-radius: 20px; }
+
+    .event-row { background: white; border-radius: 14px; padding: 20px 24px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; transition: transform 0.15s; }
+    .event-row:hover { transform: translateX(4px); }
+    .event-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .cat-env { background: #e8f5ee; } .cat-health { background: #fde8e8; } .cat-social { background: #e8eef8; } .cat-edu { background: #fdf3e3; }
+    .event-info { flex: 1; }
+    .event-title { font-size: 15px; font-weight: 500; color: var(--dark); margin-bottom: 4px; }
+    .event-meta { font-size: 12px; color: var(--gray); line-height: 1.7; }
+    .event-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+    .status-pill { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+    .status-upcoming { background: #e8eef8; color: #1a3a6b; }
+    .status-ongoing { background: #e8f5ee; color: var(--green); }
+    .status-completed { background: #f0f5f1; color: var(--gray); }
+
+    .signup-status { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+    .ss-pending { background: #fdf3e3; color: #633806; }
+    .ss-accepted { background: #e8f5ee; color: var(--green); }
+    .ss-rejected { background: #fde8e8; color: var(--red); }
+
+    .btn-edit { padding: 8px 16px; background: #fdf3e3; color: #633806; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+    .btn-delete { padding: 8px 16px; background: #fde8e8; color: var(--red); border: none; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+    .btn-cancel-signup { padding: 8px 16px; background: #fde8e8; color: var(--red); border: none; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+
+    .vc-badge { font-size: 12px; color: var(--green); font-weight: 500; background: #e8f5ee; padding: 4px 10px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+    .vc-badge:hover { background: #c8ecda; }
+
+    /* Volunteer request card */
+    .vol-requests { margin-top: 10px; border: 1px solid #cde0d4; border-radius: 10px; overflow: hidden; display: none; }
+    .vol-requests.open { display: block; }
+    .vr-header { display: grid; grid-template-columns: 2fr 2fr 1fr 140px; padding: 10px 16px; background: #f0f5f1; font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.8px; }
+    .vr-row { display: grid; grid-template-columns: 2fr 2fr 1fr 140px; padding: 12px 16px; border-top: 1px solid #e8f0ea; align-items: center; }
+    .vr-row:hover { background: #fafcfb; }
+    .vr-name { font-size: 14px; font-weight: 500; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+    .vr-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--dark); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-family: 'DM Serif Display', serif; flex-shrink: 0; }
+    .vr-email { font-size: 13px; color: var(--gray); }
+    .vr-btns { display: flex; gap: 6px; }
+    .btn-accept { padding: 6px 14px; background: var(--green); color: white; border: none; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+    .btn-accept:hover { background: var(--green2); }
+    .btn-reject { padding: 6px 14px; background: #fde8e8; color: var(--red); border: none; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+    .no-requests { padding: 20px; text-align: center; color: var(--gray); font-size: 14px; }
+
+    .empty { text-align: center; padding: 50px; color: var(--gray); background: white; border-radius: 16px; margin-bottom: 12px; }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+    .empty a { color: var(--green); font-weight: 500; }
+
+    .msg-toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 200; display: none; }
+    .msg-toast.success { background: #e8f5ee; color: #0f5c3a; border: 1px solid #9FE1CB; display: block; }
+    .msg-toast.error { background: #fde8e8; color: #7a0f0f; display: block; }
+
+    .pending-badge { background: #fdf3e3; color: #633806; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-left: 6px; }
+  </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="logout-modal">
+  <div class="modal">
+    <h3>Sign Out?</h3>
+    <p>Are you sure you want to sign out?</p>
+    <div class="modal-btns">
+      <button class="btn-cancel-modal" onclick="closeLogout()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<div class="msg-toast" id="toast"></div>
+
+<nav>
+  <div class="logo"><div class="logo-icon">V</div><div class="logo-text">VolunteerHub</div></div>
+  <div class="nav-links">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="events.html">Events</a>
+    <a href="my-events.html" class="active">My Events</a>
+    <a href="create-event.html" id="nav-create" style="display:none">Create Event</a>
+  </div>
+  <button class="btn-logout" onclick="showLogout()">Sign Out</button>
+</nav>
+
+<main>
+  <div class="page-header">
+    <h1 id="page-title">My Events</h1>
+    <p id="page-sub">Loading...</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label" id="s1-label">Total</div><div class="stat-value" id="s-total">0</div><div class="stat-sub" id="s1-sub">events</div></div>
+    <div class="stat-card"><div class="stat-label" id="s2-label">Upcoming</div><div class="stat-value" id="s-upcoming">0</div><div class="stat-sub">active</div></div>
+    <div class="stat-card"><div class="stat-label" id="s3-label">Pending</div><div class="stat-value" id="s-done">0</div><div class="stat-sub" id="s3-sub">requests</div></div>
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="admin-view" style="display:none">
+    <div class="tab-row">
+      <button class="tab active" onclick="switchTab('created', this)">Events I Created</button>
+      <button class="tab" onclick="switchTab('requests', this)">Volunteer Requests <span class="pending-badge" id="pending-count-badge">0</span></button>
+    </div>
+    <div id="tab-created"><div id="created-list"></div></div>
+    <div id="tab-requests" style="display:none"><div id="requests-list"></div></div>
+  </div>
+
+  <!-- VOLUNTEER VIEW -->
+  <div id="volunteer-view" style="display:none">
+    <div class="section-header">
+      <div class="section-title">My Upcoming Events</div>
+      <span class="section-count" id="upcoming-count">0</span>
+    </div>
+    <div id="upcoming-list"></div>
+    <div class="section-header" style="margin-top:28px">
+      <div class="section-title">Past Events</div>
+      <span class="section-count" id="past-count">0</span>
+    </div>
+    <div id="past-list"></div>
+  </div>
+</main>
+
+<script>
+  const API = "http://localhost:8080";
+  const userId = localStorage.getItem('userId');
+  const role = localStorage.getItem('role');
+  if (!userId) window.location.href = 'login.html';
+  if (role === 'ADMIN') document.getElementById('nav-create').style.display = 'block';
+
+  const catIcon = { Environment:'🌳', Health:'❤️', Social:'🤝', Education:'📚' };
+  const catClass = { Environment:'cat-env', Health:'cat-health', Social:'cat-social', Education:'cat-edu' };
+  let createdEvents = [];
+
+  async function loadPage() {
+    if (role === 'ADMIN') {
+      document.getElementById('page-title').innerText = 'My Events';
+      document.getElementById('page-sub').innerText = 'Events you created and volunteer requests';
+      document.getElementById('s1-label').innerText = 'Created';
+      document.getElementById('s1-sub').innerText = 'events by me';
+      document.getElementById('s2-label').innerText = 'Active';
+      document.getElementById('s3-label').innerText = 'Pending';
+      document.getElementById('s3-sub').innerText = 'requests';
+      document.getElementById('admin-view').style.display = 'block';
+      await loadAdminView();
+    } else {
+      document.getElementById('page-title').innerText = 'My Events';
+      document.getElementById('page-sub').innerText = 'Events you have requested or signed up for';
+      document.getElementById('s3-label').innerText = 'Completed';
+      document.getElementById('s3-sub').innerText = 'events done';
+      document.getElementById('volunteer-view').style.display = 'block';
+      await loadVolunteerView();
+    }
+  }
+
+  // ── ADMIN ─────────────────────────────────────────────
+  async function loadAdminView() {
+    try {
+      const res = await fetch(API + '/api/events');
+      const all = await res.json();
+      createdEvents = all.filter(e => String(e.createdBy) === String(userId));
+
+      const active = createdEvents.filter(e => e.status !== 'COMPLETED');
+
+      // Count total pending across all events
+      let totalPending = 0;
+      for (const e of createdEvents) {
+        const vRes = await fetch(API + '/api/volunteer/event/' + e.id);
+        const vols = await vRes.json();
+        e._volunteers = vols;
+        totalPending += vols.filter(v => v.signupStatus === 'PENDING').length;
+      }
+
+      document.getElementById('s-total').innerText = createdEvents.length;
+      document.getElementById('s-upcoming').innerText = active.length;
+      document.getElementById('s-done').innerText = totalPending;
+      document.getElementById('pending-count-badge').innerText = totalPending;
+
+      renderCreatedEvents();
+      renderRequestsTab();
+    } catch(e) { showToast('Failed to load', 'error'); }
+  }
+
+  function renderCreatedEvents() {
+    const container = document.getElementById('created-list');
+    if (createdEvents.length === 0) {
+      container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>No events created yet. <a href="create-event.html">Create one →</a></div>`;
+      return;
+    }
+    container.innerHTML = createdEvents.map(e => {
+      const accepted = (e._volunteers || []).filter(v => v.signupStatus === 'ACCEPTED').length;
+      const pending = (e._volunteers || []).filter(v => v.signupStatus === 'PENDING').length;
+      return `
+        <div>
+          <div class="event-row">
+            <div class="event-icon ${catClass[e.category] || 'cat-env'}">${catIcon[e.category] || '📅'}</div>
+            <div class="event-info">
+              <div class="event-title">${e.title}</div>
+              <div class="event-meta">📍 ${e.location} &nbsp;•&nbsp; 🗓️ ${e.eventDate}<br/>👥 ${accepted}/${e.maxVolunteers} accepted &nbsp;•&nbsp; ⏳ ${pending} pending</div>
+            </div>
+            <div class="event-actions">
+              <span class="vc-badge" onclick="toggleRequests('drawer-${e.id}')">👥 ${(e._volunteers||[]).length} requests</span>
+              <span class="status-pill status-${e.status.toLowerCase()}">${e.status}</span>
+              <button class="btn-edit" onclick="editEvent(${e.id})">Edit</button>
+              <button class="btn-delete" onclick="deleteEvent(${e.id}, '${e.title.replace(/'/g,"\\'")}')">Delete</button>
+            </div>
+          </div>
+          <div class="vol-requests" id="drawer-${e.id}">
+            ${renderVolunteerRows(e._volunteers || [], e.id, e.maxVolunteers)}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderVolunteerRows(volunteers, eventId, maxVols) {
+    if (volunteers.length === 0) return '<div class="no-requests">No volunteer requests yet.</div>';
+    const accepted = volunteers.filter(v => v.signupStatus === 'ACCEPTED').length;
+    return `
+      <div class="vr-header"><div>Volunteer</div><div>Email</div><div>Status</div><div>Actions</div></div>
+      ${volunteers.map(v => {
+        const isPending = v.signupStatus === 'PENDING';
+        const isAccepted = v.signupStatus === 'ACCEPTED';
+        const isFull = accepted >= maxVols;
+        return `
+          <div class="vr-row" id="vr-${eventId}-${v.id}">
+            <div class="vr-name"><div class="vr-avatar">${v.name.charAt(0)}</div>${v.name}</div>
+            <div class="vr-email">${v.email}</div>
+            <div>
+              <span class="signup-status ${v.signupStatus === 'PENDING' ? 'ss-pending' : v.signupStatus === 'ACCEPTED' ? 'ss-accepted' : 'ss-rejected'}">
+                ${v.signupStatus === 'PENDING' ? '⏳ Pending' : v.signupStatus === 'ACCEPTED' ? '✅ Accepted' : '❌ Rejected'}
+              </span>
+            </div>
+            <div class="vr-btns">
+              ${isPending ? `
+                <button class="btn-accept" onclick="reviewVolunteer(${v.id}, ${eventId}, 'ACCEPTED')" ${isFull ? 'disabled title="Event is full"' : ''}>Accept</button>
+                <button class="btn-reject" onclick="reviewVolunteer(${v.id}, ${eventId}, 'REJECTED')">Reject</button>
+              ` : isAccepted ? `
+                <button class="btn-reject" onclick="reviewVolunteer(${v.id}, ${eventId}, 'REJECTED')">Revoke</button>
+              ` : `
+                <button class="btn-accept" onclick="reviewVolunteer(${v.id}, ${eventId}, 'ACCEPTED')" ${isFull ? 'disabled title="Event is full"' : ''}>Re-accept</button>
+              `}
+            </div>
+          </div>`;
+      }).join('')}`;
+  }
+
+  function renderRequestsTab() {
+    const container = document.getElementById('requests-list');
+    const allPending = [];
+    createdEvents.forEach(e => {
+      (e._volunteers || []).forEach(v => {
+        if (v.signupStatus === 'PENDING') allPending.push({ ...v, eventTitle: e.title, eventId: e.id, maxVols: e.maxVolunteers });
+      });
+    });
+
+    if (allPending.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">✅</div>No pending requests right now.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="vol-requests open" style="border:none">
+        <div class="vr-header" style="grid-template-columns:2fr 2fr 1.5fr 140px"><div>Volunteer</div><div>Email</div><div>Event</div><div>Actions</div></div>
+        ${allPending.map(v => `
+          <div class="vr-row" style="grid-template-columns:2fr 2fr 1.5fr 140px">
+            <div class="vr-name"><div class="vr-avatar">${v.name.charAt(0)}</div>${v.name}</div>
+            <div class="vr-email">${v.email}</div>
+            <div class="vr-email">${v.eventTitle}</div>
+            <div class="vr-btns">
+              <button class="btn-accept" onclick="reviewVolunteer(${v.id}, ${v.eventId}, 'ACCEPTED')">Accept</button>
+              <button class="btn-reject" onclick="reviewVolunteer(${v.id}, ${v.eventId}, 'REJECTED')">Reject</button>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  async function reviewVolunteer(volunteerId, eventId, action) {
+    try {
+      const res = await fetch(API + '/api/volunteer/review', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: volunteerId, eventId, action })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Volunteer ${action.toLowerCase()} successfully`, 'success');
+        await loadAdminView(); // reload to refresh counts
+      } else { showToast(data.message || 'Failed', 'error'); }
+    } catch(e) { showToast('Connection error', 'error'); }
+  }
+
+  function toggleRequests(drawerId) {
+    const el = document.getElementById(drawerId);
+    el.classList.toggle('open');
+  }
+
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-created').style.display = tab === 'created' ? 'block' : 'none';
+    document.getElementById('tab-requests').style.display = tab === 'requests' ? 'block' : 'none';
+  }
+
+  // ── VOLUNTEER ──────────────────────────────────────────
+  async function loadVolunteerView() {
+    try {
+      const res = await fetch(API + '/api/volunteer/my-events/' + userId);
+      const events = await res.json();
+
+      const upcoming = events.filter(e => e.status !== 'COMPLETED');
+      const past = events.filter(e => e.status === 'COMPLETED');
+      const pending = events.filter(e => e.signupStatus === 'PENDING').length;
+
+      document.getElementById('s-total').innerText = events.length;
+      document.getElementById('s-upcoming').innerText = upcoming.length;
+      document.getElementById('s-done').innerText = past.length;
+      document.getElementById('upcoming-count').innerText = upcoming.length + ' events';
+      document.getElementById('past-count').innerText = past.length + ' events';
+
+      renderVolList(upcoming, 'upcoming-list', true);
+      renderVolList(past, 'past-list', false);
+    } catch(e) { showToast('Failed to load', 'error'); }
+  }
+
+  function renderVolList(events, containerId, canCancel) {
+    const container = document.getElementById(containerId);
+    if (events.length === 0) {
+      container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>${canCancel ? 'No upcoming events. <a href="events.html">Browse events →</a>' : 'No past events yet.'}</div>`;
+      return;
+    }
+    container.innerHTML = events.map(e => `
+      <div class="event-row">
+        <div class="event-icon ${catClass[e.category] || 'cat-env'}">${catIcon[e.category] || '📅'}</div>
+        <div class="event-info">
+          <div class="event-title">${e.title}</div>
+          <div class="event-meta">📍 ${e.location} &nbsp;•&nbsp; 🗓️ ${e.eventDate}<br/>⏰ ${e.startTime} - ${e.endTime}</div>
+        </div>
+        <div class="event-actions">
+          <span class="signup-status ${e.signupStatus === 'PENDING' ? 'ss-pending' : e.signupStatus === 'ACCEPTED' ? 'ss-accepted' : 'ss-rejected'}">
+            ${e.signupStatus === 'PENDING' ? '⏳ Pending' : e.signupStatus === 'ACCEPTED' ? '✅ Accepted' : '❌ Rejected'}
+          </span>
+          <span class="status-pill status-${e.status.toLowerCase()}">${e.status}</span>
+          ${canCancel && e.signupStatus !== 'COMPLETED' ? `<button class="btn-cancel-signup" onclick="cancelSignup(${e.id})">Cancel</button>` : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  async function cancelSignup(eventId) {
+    if (!confirm('Cancel your request for this event?')) return;
+    try {
+      const res = await fetch(API + '/api/volunteer/cancel', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: parseInt(userId), eventId })
+      });
+      const data = await res.json();
+      if (res.ok) { showToast('Request cancelled', 'success'); loadVolunteerView(); }
+      else { showToast(data.message || 'Failed', 'error'); }
+    } catch(e) { showToast('Connection error', 'error'); }
+  }
+
+  function editEvent(id) { window.location.href = 'create-event.html?edit=' + id; }
+
+  async function deleteEvent(id, title) {
+    if (!confirm(`Delete "${title}"? This will remove all volunteer requests too.`)) return;
+    try {
+      const res = await fetch(API + '/api/events/' + id, { method: 'DELETE' });
+      if (res.ok) { showToast('Event deleted', 'success'); loadAdminView(); }
+    } catch(e) { showToast('Connection error', 'error'); }
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast'); t.innerText = msg; t.className = 'msg-toast ' + type;
+    setTimeout(() => { t.className = 'msg-toast'; }, 3500);
+  }
+  function showLogout() { document.getElementById('logout-modal').classList.add('show'); }
+  function closeLogout() { document.getElementById('logout-modal').classList.remove('show'); }
+  function confirmLogout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+  loadPage();
+</script>
+</body>
+</html>

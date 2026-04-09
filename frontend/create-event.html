@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VolunteerHub — Create Event</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --green:#1a6b3c; --green2:#228b4e; --lime:#4caf72; --white:#f5f9f6; --gray:#7a8a80; --red:#e05252; --bg:#f0f5f1; --dark:#0f2d1c; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); min-height: 100vh; }
+    nav { background: var(--dark); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 34px; height: 34px; background: var(--lime); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; color: var(--dark); font-size: 18px; }
+    .logo-text { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--white); }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a { color: var(--gray); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .nav-links a.active, .nav-links a:hover { color: var(--white); }
+    .btn-logout { padding: 8px 16px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: var(--white); background: transparent; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+    main { padding: 40px; max-width: 700px; margin: 0 auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--dark); text-decoration: none; font-size: 14px; font-weight: 500; margin-bottom: 24px; }
+    h1 { font-family: 'DM Serif Display', serif; font-size: 30px; color: var(--dark); margin-bottom: 6px; }
+    .sub { color: var(--gray); font-size: 14px; margin-bottom: 32px; }
+
+    .card { background: white; border-radius: 16px; padding: 32px; }
+    .form-section { margin-bottom: 28px; }
+    .section-label { font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #f0f5f1; }
+
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: var(--dark); margin-bottom: 6px; }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 12px 16px; border: 1.5px solid #cde0d4; border-radius: 10px;
+      font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--dark);
+      background: #f8fbf9; outline: none; transition: border-color 0.2s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); background: white; }
+    .field textarea { resize: vertical; min-height: 90px; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .btn-submit {
+      width: 100%; padding: 14px; background: var(--green); color: white;
+      border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.2s; margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--green2); }
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+
+    .msg { text-align: center; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 500; margin-top: 16px; display: none; }
+    .msg.success { background: #e8f5ee; color: #0f5c3a; display: block; }
+    .msg.error { background: #fde8e8; color: #7a0f0f; display: block; }
+
+    .preview-card { background: #f0f5f1; border-radius: 12px; padding: 20px; margin-top: 24px; }
+    .preview-title { font-size: 13px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .preview-event-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--dark); margin-bottom: 8px; }
+    .preview-meta { font-size: 13px; color: var(--gray); line-height: 1.8; }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="logo"><div class="logo-icon">V</div><div class="logo-text">VolunteerHub</div></div>
+  <div class="nav-links">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="events.html">Events</a>
+    <a href="my-events.html">My Events</a>
+    <a href="create-event.html" class="active">Create Event</a>
+  </div>
+  <button class="btn-logout" onclick="logout()">Sign Out</button>
+</nav>
+
+<main>
+  <a href="events.html" class="back-link">← Back to Events</a>
+  <h1 id="page-title">Create New Event</h1>
+  <p class="sub" id="page-sub">Fill in the details to publish a new volunteer event</p>
+
+  <div class="card">
+    <div class="form-section">
+      <div class="section-label">Basic Information</div>
+      <div class="field">
+        <label>Event Title *</label>
+        <input type="text" id="title" placeholder="e.g. Tree Plantation Drive" oninput="updatePreview()"/>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="description" placeholder="Describe what volunteers will be doing..." oninput="updatePreview()"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Category *</label>
+          <select id="category" onchange="updatePreview()">
+            <option value="">Select category</option>
+            <option value="Environment">🌳 Environment</option>
+            <option value="Health">❤️ Health</option>
+            <option value="Social">🤝 Social</option>
+            <option value="Education">📚 Education</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="status">
+            <option value="UPCOMING">Upcoming</option>
+            <option value="ONGOING">Ongoing</option>
+            <option value="COMPLETED">Completed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Location & Schedule</div>
+      <div class="field">
+        <label>Location *</label>
+        <input type="text" id="location" placeholder="e.g. Central Park, Pune" oninput="updatePreview()"/>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Event Date *</label>
+          <input type="date" id="event-date" oninput="updatePreview()"/>
+        </div>
+        <div class="field">
+          <label>Max Volunteers *</label>
+          <input type="number" id="max-volunteers" placeholder="e.g. 30" min="1"/>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Start Time</label>
+          <input type="time" id="start-time"/>
+        </div>
+        <div class="field">
+          <label>End Time</label>
+          <input type="time" id="end-time"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="preview-card">
+      <div class="preview-title">Live Preview</div>
+      <div class="preview-event-title" id="prev-title">Event Title</div>
+      <div class="preview-meta">
+        <div id="prev-cat">Category: —</div>
+        <div id="prev-loc">📍 Location</div>
+        <div id="prev-date">🗓️ Date</div>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btn-submit" onclick="submitEvent()">Publish Event</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</main>
+
+<script>
+  const API = "http://localhost:8080";
+  const userId = localStorage.getItem('userId');
+  const role = localStorage.getItem('role');
+
+  if (!userId) window.location.href = 'login.html';
+  if (role !== 'ADMIN') window.location.href = 'dashboard.html';
+
+  // Check if editing
+  const urlParams = new URLSearchParams(window.location.search);
+  const editId = urlParams.get('edit');
+  let isEdit = false;
+
+  if (editId) {
+    isEdit = true;
+    document.getElementById('page-title').innerText = 'Edit Event';
+    document.getElementById('page-sub').innerText = 'Update the event details';
+    document.getElementById('btn-submit').innerText = 'Update Event';
+    loadEventForEdit(editId);
+  }
+
+  async function loadEventForEdit(id) {
+    try {
+      const res = await fetch(API + '/api/events/' + id);
+      const e = await res.json();
+      document.getElementById('title').value = e.title || '';
+      document.getElementById('description').value = e.description || '';
+      document.getElementById('category').value = e.category || '';
+      document.getElementById('status').value = e.status || 'UPCOMING';
+      document.getElementById('location').value = e.location || '';
+      document.getElementById('event-date').value = e.eventDate || '';
+      document.getElementById('max-volunteers').value = e.maxVolunteers || '';
+      document.getElementById('start-time').value = e.startTime ? to24h(e.startTime) : '';
+      document.getElementById('end-time').value = e.endTime ? to24h(e.endTime) : '';
+      updatePreview();
+    } catch(e) { alert('Failed to load event'); }
+  }
+
+  function to24h(t) {
+    if (!t || t.includes(':') && !t.includes('AM') && !t.includes('PM')) return t;
+    const [time, modifier] = t.split(' ');
+    let [hours, minutes] = time.split(':');
+    if (modifier === 'PM' && hours !== '12') hours = parseInt(hours) + 12;
+    if (modifier === 'AM' && hours === '12') hours = '00';
+    return `${String(hours).padStart(2,'0')}:${minutes}`;
+  }
+
+  function to12h(t) {
+    if (!t) return '';
+    const [h, m] = t.split(':');
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const h12 = hour % 12 || 12;
+    return `${h12}:${m} ${ampm}`;
+  }
+
+  function updatePreview() {
+    document.getElementById('prev-title').innerText = document.getElementById('title').value || 'Event Title';
+    document.getElementById('prev-cat').innerText = 'Category: ' + (document.getElementById('category').value || '—');
+    document.getElementById('prev-loc').innerText = '📍 ' + (document.getElementById('location').value || 'Location');
+    document.getElementById('prev-date').innerText = '🗓️ ' + (document.getElementById('event-date').value || 'Date');
+  }
+
+  async function submitEvent() {
+    const title = document.getElementById('title').value;
+    const location = document.getElementById('location').value;
+    const eventDate = document.getElementById('event-date').value;
+    const maxVolunteers = document.getElementById('max-volunteers').value;
+    const category = document.getElementById('category').value;
+    const msg = document.getElementById('msg');
+    msg.className = 'msg';
+
+    if (!title || !location || !eventDate || !maxVolunteers || !category) {
+      msg.className = 'msg error'; msg.innerText = '❌ Please fill in all required fields.'; return;
+    }
+
+    const body = {
+      title,
+      description: document.getElementById('description').value,
+      location,
+      eventDate,
+      startTime: to12h(document.getElementById('start-time').value),
+      endTime: to12h(document.getElementById('end-time').value),
+      maxVolunteers: parseInt(maxVolunteers),
+      category,
+      status: document.getElementById('status').value,
+      createdBy: parseInt(userId)
+    };
+
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('btn-submit').innerText = isEdit ? 'Updating...' : 'Publishing...';
+
+    try {
+      const url = isEdit ? API + '/api/events/' + editId : API + '/api/events';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        msg.className = 'msg success';
+        msg.innerText = isEdit ? '✅ Event updated successfully!' : '✅ Event published successfully!';
+        setTimeout(() => window.location.href = 'events.html', 1500);
+      } else {
+        msg.className = 'msg error'; msg.innerText = '❌ ' + (data.message || 'Failed.');
+      }
+    } catch(e) {
+      msg.className = 'msg error'; msg.innerText = '❌ Cannot connect. Is Spring Boot running?';
+    }
+
+    document.getElementById('btn-submit').disabled = false;
+    document.getElementById('btn-submit').innerText = isEdit ? 'Update Event' : 'Publish Event';
+  }
+
+  function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+</script>
+</body>
+</html>
